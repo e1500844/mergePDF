@@ -2,14 +2,8 @@
 using PdfSharp.Pdf.IO;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Diagnostics;
-using System.Drawing;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace WindowsFormsApp1
@@ -17,6 +11,8 @@ namespace WindowsFormsApp1
     public partial class MainForm : Form
     {
         private string tempPath = Path.Combine(Path.GetTempPath(), "mergedtmpdocument.pdf");
+        private List<string> paths = new List<string>();
+
         public MainForm()
         {
             InitializeComponent();
@@ -68,6 +64,20 @@ namespace WindowsFormsApp1
         private void SaveButton_Click(object sender, EventArgs e)
         {
             MergePDF();
+        }
+
+        void MainForm_DragEnter(object sender, DragEventArgs e)
+        {
+            if (e.Data.GetDataPresent(DataFormats.FileDrop)) e.Effect = DragDropEffects.Copy;
+        }
+
+        void MainForm_DragDrop(object sender, DragEventArgs e)
+        {
+            foreach (var file in (string[])e.Data.GetData(DataFormats.FileDrop))
+            {
+                if (Path.GetExtension(file).Equals(".pdf"))
+                    paths.Add(file);
+            }
         }
     }
 }
