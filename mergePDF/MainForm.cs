@@ -6,12 +6,14 @@ using System.Diagnostics;
 using System.IO;
 using System.Windows.Forms;
 
-namespace WindowsFormsApp1
+namespace mergePDF
 {
     public partial class MainForm : Form
     {
-        private string tempPath = Path.Combine(Path.GetTempPath(), "mergedtmpdocument.pdf");
+        private readonly string tempPath = Path.Combine(Path.GetTempPath(), "mergedtmpdocument.pdf");
         private List<string> paths = new List<string>();
+        private int index = 1;
+        ItemViewer view = new ItemViewer();
 
         public MainForm()
         {
@@ -50,6 +52,23 @@ namespace WindowsFormsApp1
             }
         }
 
+        private void ViewItems()
+        {
+            foreach (var item in paths)
+            {
+                AddNewItem(item);
+            }
+        }
+
+        private void AddNewItem(string name)
+        {
+            view.AddRow(name, index);
+            //var lineItem = new LineItem(name, index);
+            //Controls.Add(lineItem.GetLine());
+            Controls.Add(view.UpdateView());
+            index++;
+        }
+
         private void MainForm_FormClosed(object sender, FormClosedEventArgs e)
         {
             if (File.Exists(tempPath))
@@ -76,7 +95,10 @@ namespace WindowsFormsApp1
             foreach (var file in (string[])e.Data.GetData(DataFormats.FileDrop))
             {
                 if (Path.GetExtension(file).Equals(".pdf"))
+                {
                     paths.Add(file);
+                    AddNewItem(file);
+                }
             }
         }
     }
