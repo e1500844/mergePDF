@@ -53,7 +53,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ItemViewer.cs" />
-    <Compile Include="LineItem.cs" />
     <Compile Include="MainForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -92,6 +91,8 @@
   <ItemGroup />
   <ItemGroup>
     <Content Include="Resources\symbol-delete.png" />
+    <None Include="Resources\symbol-up.png" />
+    <None Include="Resources\symbol-down.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

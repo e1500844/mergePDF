@@ -11,44 +11,51 @@ namespace mergePDF
     public partial class MainForm : Form
     {
         private readonly string tempPath = Path.Combine(Path.GetTempPath(), "mergedtmpdocument.pdf");
-        private List<string> paths = new List<string>();
-        private int index = 1;
-        ItemViewer view = new ItemViewer();
+        private readonly List<string> paths;
+        private readonly ItemViewer view;
+        private readonly string errorMsg = "Failed";
 
         public MainForm()
         {
             InitializeComponent();
+            view = new ItemViewer();
+            paths = new List<string>();
+            Controls.Add(view.UpdateView());
         }
 
-        private void MergePDF()
+        private void MergePDF(string path)
         {
-            using (PdfDocument one = PdfReader.Open(@"C:\Users\tomkoi\Documents\Oppari\abc.pdf", PdfDocumentOpenMode.Import))
-            using (PdfDocument two = PdfReader.Open(@"C:\Users\tomkoi\Documents\Oppari\UiPath Orchestrator 2018.1 Diploma.pdf", PdfDocumentOpenMode.Import))
-            using (PdfDocument outPdf = new PdfDocument())
-            {
-                CopyPages(one, outPdf);
-                CopyPages(two, outPdf);
+            PdfDocument outPdf = new PdfDocument();
 
-                outPdf.Save(tempPath);
-            }
-
-            void CopyPages(PdfDocument from, PdfDocument to)
+            foreach (var file in view.list)
             {
-                for (int i = 0; i < from.PageCount; i++)
+                using (PdfDocument one = PdfReader.Open(file, PdfDocumentOpenMode.Import))
                 {
-                    to.AddPage(from.Pages[i]);
+                    CopyPages(one, outPdf);
+                }
+
+                void CopyPages(PdfDocument from, PdfDocument to)
+                {
+                    for (int i = 0; i < from.PageCount; i++)
+                    {
+                        to.AddPage(from.Pages[i]);
+                    }
                 }
             }
+
+            outPdf.Save(path);
         }
 
-        private void Review(string pathToPDF)
+        private void Review()
         {
             try
             {
-                Process.Start(pathToPDF);
+                MergePDF(tempPath);
+                Process.Start(tempPath);
             }
             catch (Exception)
             {
+                MessageBox.Show(errorMsg);
             }
         }
 
@@ -62,11 +69,7 @@ namespace mergePDF
 
         private void AddNewItem(string name)
         {
-            view.AddRow(name, index);
-            //var lineItem = new LineItem(name, index);
-            //Controls.Add(lineItem.GetLine());
-            Controls.Add(view.UpdateView());
-            index++;
+            view.AddRow(name);
         }
 
         private void MainForm_FormClosed(object sender, FormClosedEventArgs e)
@@ -77,20 +80,32 @@ namespace mergePDF
 
         private void ReviewButton_Click(object sender, EventArgs e)
         {
-            Review(tempPath);
+            if (view.HasElements())
+                Review();
         }
 
         private void SaveButton_Click(object sender, EventArgs e)
         {
-            MergePDF();
+            if (view.HasElements())
+            {
+                var sfd = new SaveFileDialog
+                {
+                    Filter = "pdf files (*.pdf)|*.pdf"
+                };
+
+                if (sfd.ShowDialog() == DialogResult.OK)
+                {
+                    MergePDF(sfd.FileName);
+                }
+            }
         }
 
-        void MainForm_DragEnter(object sender, DragEventArgs e)
+        private void MainForm_DragEnter(object sender, DragEventArgs e)
         {
             if (e.Data.GetDataPresent(DataFormats.FileDrop)) e.Effect = DragDropEffects.Copy;
         }
 
-        void MainForm_DragDrop(object sender, DragEventArgs e)
+        private void MainForm_DragDrop(object sender, DragEventArgs e)
         {
             foreach (var file in (string[])e.Data.GetData(DataFormats.FileDrop))
             {
